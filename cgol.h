@@ -18,6 +18,7 @@ typedef struct {
     SDL_Window *window;
     SDL_bool shouldClose;
     SDL_bool lmbDown;
+    SDL_bool rmbDown;
     int currentX, currentY;
     int width, height;
     uint8_t *field;

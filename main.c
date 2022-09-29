@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
+#include <f2fs_fs.h>
 #include "cgol.h"
 
 void handleEvents(GameState *state);
@@ -81,13 +82,21 @@ void handleEvents(GameState *state) {
             state->shouldClose = SDL_TRUE;
         }
         if (e.type == SDL_MOUSEBUTTONDOWN && !running) {
+            if (e.button.button == SDL_BUTTON_LEFT) {
+                state->lmbDown = SDL_TRUE;
+            } else if (e.button.button == SDL_BUTTON_RIGHT) {
+                state->rmbDown = SDL_TRUE;
+            }
             handleMouseClick(state);
-            state->lmbDown = SDL_TRUE;
         }
         if (e.type == SDL_MOUSEBUTTONUP) {
-            state->lmbDown = SDL_FALSE;
+            if (e.button.button == SDL_BUTTON_LEFT) {
+                state->lmbDown = SDL_FALSE;
+            } else if (e.button.button == SDL_BUTTON_RIGHT) {
+                state->rmbDown = SDL_FALSE;
+            }
         }
-        if (state->lmbDown && !running && e.type == SDL_MOUSEMOTION) {
+        if ((state->lmbDown || state->rmbDown) && !running && e.type == SDL_MOUSEMOTION) {
             handleMouseMove(state);
         }
         if (e.type == SDL_WINDOWEVENT) {
@@ -120,9 +129,13 @@ void handleMouseClick(GameState *state) {
     state->currentY = cy;
     if (cx > FIELD_WIDTH || cy > FIELD_HEIGHT) { return; }
     index = cy * FIELD_WIDTH + cx;
-    *(state->field + index) = !*(state->field + index);
+    if (state->lmbDown) {
+        *(state->field + index) = 1;
+    } else if (state->rmbDown) {
+        *(state->field + index) = 0;
+    }
     if (*(state->field + index)) {
-        SDL_SetRenderDrawColor(state->renderer, 0x22, 0xCC, 0xAA, 0xFF);
+        SDL_SetRenderDrawColor(state->renderer, 0xff, 0xa8, 0x26, 0xFF);
         SDL_Rect fillRect = {x + 1, y + 1, CELL_SIZE - 1, CELL_SIZE - 1};
         SDL_RenderFillRect(state->renderer, &fillRect);
     } else {
@@ -160,20 +173,29 @@ void handleKeypress(GameState *state, SDL_KeyCode key) {
 void drawLevel(GameState *state) {
     SDL_SetRenderDrawColor(state->renderer, 0x22, 0x22, 0x22, 0xFF);
     SDL_RenderClear(state->renderer);
-    SDL_SetRenderDrawColor(state->renderer, 0x22, 0xCC, 0xAA, 0xFF);
-    for (int i = 0; i <= FIELD_WIDTH; i++) {
-        int x = i * CELL_SIZE;
-        SDL_RenderDrawLine(state->renderer, x, 0, x, state->height);
-    }
-    for (int i = 0; i <= FIELD_HEIGHT; i++) {
-        int y = i * CELL_SIZE;
-        SDL_RenderDrawLine(state->renderer, 0, y, state->width, y);
-    }
+    SDL_SetRenderDrawColor(state->renderer, 0xff, 0xa8, 0x26, 0xFF);
+//    for (int i = 0; i <= FIELD_WIDTH; i++) {
+//        int x = i * CELL_SIZE;
+//        SDL_RenderDrawLine(state->renderer, x, 0, x, state->height);
+//    }
+//    for (int i = 0; i <= FIELD_HEIGHT; i++) {
+//        int y = i * CELL_SIZE;
+//        SDL_RenderDrawLine(state->renderer, 0, y, state->width, y);
+//    }
     for (int i = 0; i < FIELD_HEIGHT; i++) {
         for (int j = 0; j < FIELD_WIDTH; j++) {
             if (*(state->field + (i * FIELD_WIDTH + j))) {
+                SDL_SetRenderDrawColor(state->renderer, 0xff, 0xa8, 0x26, 0xFF);
                 SDL_Rect fillRect = {j * CELL_SIZE + 1, i * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1};
                 SDL_RenderFillRect(state->renderer, &fillRect);
+                SDL_SetRenderDrawColor(state->renderer, 0x47, 0x3a, 0x1e, 0xFF);
+                for (int l = 0; l < 9; l++) {
+                    if (!*(state->field + ((i - 1 + (l % 3)) * FIELD_WIDTH + (j - 1 + (max(l, 1) / 3))))) {
+                        SDL_Rect fillAlphaRect = {(j - 1 + (max(l, 1) / 3)) * CELL_SIZE + 1,
+                                                  (i - 1 + (l % 3)) * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1};
+                        SDL_RenderFillRect(state->renderer, &fillAlphaRect);
+                    }
+                }
             }
         }
     }

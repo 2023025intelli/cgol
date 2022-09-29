@@ -6,6 +6,10 @@
 
 ### Run with *./cgol*
 
+### Left mouse button to activate cell
+
+### Right mouse button to disable cell
+
 ### SPACE to pause / unpause
 
 ### R to reset
