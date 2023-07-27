@@ -1,6 +1,5 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
-#include <f2fs_fs.h>
 #include "cgol.h"
 
 void handleEvents(GameState *state);
@@ -20,6 +19,8 @@ void drawLevel(GameState *state);
 void updateField(GameState *state);
 
 void switchBuffer(GameState *state);
+
+int max(int a, int b);
 
 static SDL_Event e;
 static SDL_bool running = SDL_FALSE;
@@ -238,6 +239,10 @@ void getMouseCoordinates(int *x, int *y, int *cx, int *cy) {
     *y -= *y % CELL_SIZE;
     *cx = *x / CELL_SIZE;
     *cy = *y / CELL_SIZE;
+}
+
+int max(int a, int b) {
+    return a > b ? a : b;
 }
 
 /*
